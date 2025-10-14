@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 
+#include <string>
 #include <vector>
 
 #include "HT_DEPG0290BxS800FxX_BW.h"
@@ -21,19 +22,19 @@
 #define ROOM_NAME "Lovelace"
 
 struct Booking {
-  String id;
-  String user_id;
-  String user_name;
-  String room_id;
-  String room_name;
+  std::string id;
+  std::string user_id;
+  std::string user_name;
+  std::string room_id;
+  std::string room_name;
   long start_time;
   long end_time;
-  String notes;
+  std::string notes;
 };
 
 struct DisplayBooking {
-  String title;
-  String subtitle;
+  std::string title;
+  std::string subtitle;
 };
 
 struct RoomStatus {
@@ -49,27 +50,27 @@ DEPG0290BxS800FxX_BW display(5, 4, 3, 6, 2, 1, -1, 6000000);
 void printBooking(const Booking& booking) {
   Serial.println("Booking {");
   Serial.print("  id: ");
-  Serial.println(booking.id);
+  Serial.println(booking.id.c_str());
   Serial.print("  user_id: ");
-  Serial.println(booking.user_id);
+  Serial.println(booking.user_id.c_str());
   Serial.print("  user_name: ");
-  Serial.println(booking.user_name);
+  Serial.println(booking.user_name.c_str());
   Serial.print("  room_id: ");
-  Serial.println(booking.room_id);
+  Serial.println(booking.room_id.c_str());
   Serial.print("  room_name: ");
-  Serial.println(booking.room_name);
+  Serial.println(booking.room_name.c_str());
   Serial.print("  start_time: ");
   Serial.print(booking.start_time);
   Serial.print(" (");
-  Serial.print(timestampToIso8601(booking.start_time));
+  Serial.print(timestampToIso8601(booking.start_time).c_str());
   Serial.println(")");
   Serial.print("  end_time: ");
   Serial.print(booking.end_time);
   Serial.print(" (");
-  Serial.print(timestampToIso8601(booking.end_time));
+  Serial.print(timestampToIso8601(booking.end_time).c_str());
   Serial.println(")");
   Serial.print("  notes: ");
-  Serial.println(booking.notes);
+  Serial.println(booking.notes.c_str());
   Serial.println("}");
 }
 
@@ -83,18 +84,18 @@ void printRoomStatus(const RoomStatus& status) {
   if (status.hasNow) {
     Serial.println("  now: {");
     Serial.print("    title: ");
-    Serial.println(status.now.title);
+    Serial.println(status.now.title.c_str());
     Serial.print("    subtitle: ");
-    Serial.println(status.now.subtitle);
+    Serial.println(status.now.subtitle.c_str());
     Serial.println("  }");
   }
 
   if (status.hasNext) {
     Serial.println("  next: {");
     Serial.print("    title: ");
-    Serial.println(status.next.title);
+    Serial.println(status.next.title.c_str());
     Serial.print("    subtitle: ");
-    Serial.println(status.next.subtitle);
+    Serial.println(status.next.subtitle.c_str());
     Serial.println("  }");
   }
 
@@ -168,21 +169,21 @@ void waitForTime() {
 
 void drawCurrentTime() {
   time_t now = time(nullptr);
-  String isoTime = timestampToIso8601(now);
-  Serial.println(isoTime);
+  std::string isoTime = timestampToIso8601(now);
+  Serial.println(isoTime.c_str());
   display.setFont(ArialMT_Plain_24);
-  display.drawString(10, 10, isoTime);
+  display.drawString(10, 10, isoTime.c_str());
 }
 
-String timestampToIso8601(time_t t) {
+std::string timestampToIso8601(time_t t) {
   struct tm tm;
   gmtime_r(&t, &tm);  // UTC
   char buf[21];       // "YYYY-MM-DDTHH:MM:SSZ" = 20 + NUL
   strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tm);
-  return String(buf);
+  return std::string(buf);
 }
 
-time_t iso8601ToTimestamp(const String& isoString) {
+time_t iso8601ToTimestamp(const std::string& isoString) {
   struct tm tm;
   strptime(isoString.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
   return mktime(&tm);
@@ -204,18 +205,18 @@ std::vector<Booking> getBookings(int roomId) {
   HTTPClient http;
 
   time_t now = time(nullptr);
-  String isoTime = timestampToIso8601(now);
+  std::string isoTime = timestampToIso8601(now);
 
   // client.setInsecure();
-  String url = API_URL;
+  std::string url = API_URL;
   url += "?end_time=";
   url += isoTime;
   url += "&end_time_op=%3E";  // > operator
   url += "&limit=2";
-  Serial.println(url);
-  String cookie = String("auth_token=") + AUTH_TOKEN;
-  http.addHeader("Cookie", cookie);
-  http.begin(client, url);
+  Serial.println(url.c_str());
+  std::string cookie = std::string("auth_token=") + AUTH_TOKEN;
+  http.addHeader("Cookie", cookie.c_str());
+  http.begin(client, url.c_str());
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     Serial.println("Error while fetching bookings:");
@@ -254,9 +255,9 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   Booking firstBooking = bookings[0];
   bool hasNow = firstBooking.start_time <= now;
 
-  String firstTitle = (firstBooking.notes.length() > 0)
-                          ? firstBooking.notes
-                          : firstBooking.user_name;
+  std::string firstTitle = (firstBooking.notes.length() > 0)
+                               ? firstBooking.notes
+                               : firstBooking.user_name;
 
   if (!hasNow) {
     // the room is currently vacant
@@ -266,7 +267,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
         .hasNext = true,
         .next = DisplayBooking{
             .title = firstTitle,
-            .subtitle = String("Starts at ") +
+            .subtitle = std::string("Starts at ") +
                         timestampToIso8601(firstBooking.start_time)}};
   }
 
@@ -275,20 +276,20 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
       RoomStatus{.hasNow = true,
                  .now = DisplayBooking{
                      .title = firstTitle,
-                     .subtitle = String("Ends at ") +
+                     .subtitle = std::string("Ends at ") +
                                  timestampToIso8601(firstBooking.end_time)}};
 
   bool hasNext = bookings.size() > 1;
   if (hasNext) {
     // the room is currently occupied, and there is a next booking
     Booking secondBooking = bookings[1];
-    String secondTitle = (secondBooking.notes.length() > 0)
-                             ? secondBooking.notes
-                             : secondBooking.user_name;
+    std::string secondTitle = (secondBooking.notes.length() > 0)
+                                  ? secondBooking.notes
+                                  : secondBooking.user_name;
     status.hasNext = true;
     status.next = DisplayBooking{
         .title = secondBooking.user_name,
-        .subtitle = String("Starts at ") +
+        .subtitle = std::string("Starts at ") +
                     timestampToIso8601(secondBooking.start_time)};
   }
   return status;
@@ -305,10 +306,10 @@ void drawRoomStatus(const RoomStatus& status) {
 
   if (status.hasNow) {
     display.setFont(ArialMT_Plain_24);
-    display.drawString(x, cursor_y, status.now.title);
+    display.drawString(x, cursor_y, status.now.title.c_str());
     cursor_y += 24 + 6;
     display.setFont(ArialMT_Plain_16);
-    display.drawString(x, cursor_y, status.now.subtitle);
+    display.drawString(x, cursor_y, status.now.subtitle.c_str());
   } else {
     display.setFont(ArialMT_Plain_24);
     display.drawString(x, cursor_y, "VACANT");
@@ -321,10 +322,10 @@ void drawRoomStatus(const RoomStatus& status) {
     display.drawString(x, cursor_y, "NEXT");
     cursor_y += 10 + 2;
     display.setFont(ArialMT_Plain_16);
-    display.drawString(x, cursor_y, status.next.title);
+    display.drawString(x, cursor_y, status.next.title.c_str());
     cursor_y += 16 + 2;
     display.setFont(ArialMT_Plain_10);
-    display.drawString(x, cursor_y, status.next.subtitle);
+    display.drawString(x, cursor_y, status.next.subtitle.c_str());
   }
 }
 
