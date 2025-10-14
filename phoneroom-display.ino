@@ -1,0 +1,330 @@
+#include <ArduinoJson.h>
+#include <HTTPClient.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+
+#include <vector>
+
+#include "HT_DEPG0290BxS800FxX_BW.h"
+#include "time.h"
+
+#define DIRECTION ANGLE_0_DEGREE
+#define SCREEN_WIDTH 296
+#define SCREEN_HEIGHT 128
+#define WIFI_SSID "Recurse Center"
+#define WIFI_PASSWORD "nevergraduate!"
+#define NPT_SERVER "time.google.com"
+#define API_URL "http://10.100.16.230:3000/api/bookings"
+#define AUTH_TOKEN \
+  "56d884e77ab5f72644309c5c58a06ae88098c2493d1a03c776355852007d112d"
+#define ROOM_ID 1
+#define ROOM_NAME "Lovelace"
+
+struct Booking {
+  String id;
+  String user_id;
+  String user_name;
+  String room_id;
+  String room_name;
+  long start_time;
+  long end_time;
+  String notes;
+};
+
+struct DisplayBooking {
+  String title;
+  String subtitle;
+};
+
+struct RoomStatus {
+  bool hasNow;
+  bool hasNext;
+  DisplayBooking now;
+  DisplayBooking next;
+};
+
+// rst, dc, cs, busy, sck, mosi, miso, frequency
+DEPG0290BxS800FxX_BW display(5, 4, 3, 6, 2, 1, -1, 6000000);
+
+void printBooking(const Booking& booking) {
+  Serial.println("Booking {");
+  Serial.print("  id: ");
+  Serial.println(booking.id);
+  Serial.print("  user_id: ");
+  Serial.println(booking.user_id);
+  Serial.print("  user_name: ");
+  Serial.println(booking.user_name);
+  Serial.print("  room_id: ");
+  Serial.println(booking.room_id);
+  Serial.print("  room_name: ");
+  Serial.println(booking.room_name);
+  Serial.print("  start_time: ");
+  Serial.print(booking.start_time);
+  Serial.print(" (");
+  Serial.print(timestampToIso8601(booking.start_time));
+  Serial.println(")");
+  Serial.print("  end_time: ");
+  Serial.print(booking.end_time);
+  Serial.print(" (");
+  Serial.print(timestampToIso8601(booking.end_time));
+  Serial.println(")");
+  Serial.print("  notes: ");
+  Serial.println(booking.notes);
+  Serial.println("}");
+}
+
+void printRoomStatus(const RoomStatus& status) {
+  Serial.println("RoomStatus {");
+  Serial.print("  hasNow: ");
+  Serial.println(status.hasNow ? "true" : "false");
+  Serial.print("  hasNext: ");
+  Serial.println(status.hasNext ? "true" : "false");
+
+  if (status.hasNow) {
+    Serial.println("  now: {");
+    Serial.print("    title: ");
+    Serial.println(status.now.title);
+    Serial.print("    subtitle: ");
+    Serial.println(status.now.subtitle);
+    Serial.println("  }");
+  }
+
+  if (status.hasNext) {
+    Serial.println("  next: {");
+    Serial.print("    title: ");
+    Serial.println(status.next.title);
+    Serial.print("    subtitle: ");
+    Serial.println(status.next.subtitle);
+    Serial.println("  }");
+  }
+
+  Serial.println("}");
+}
+
+void setup() {
+  Serial.begin(115200);
+  // Initialize eink display
+  VextON();
+  delay(100);
+  display.init();
+  display.screenRotate(DIRECTION);
+  display.clear();
+  display.clear();
+  delay(1000);
+  // Connect to wifi
+  display.drawString(0, 0, "init >>> ");
+  Serial.print("Connecting to ");
+  display.drawString(0, 20, "Connecting to ... ");
+  Serial.println(WIFI_SSID);
+  display.drawString(100, 20, WIFI_SSID);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  uint8_t i = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+    display.drawString(i, 40, ".");
+    i = i + 10;
+  }
+  Serial.println("");
+  Serial.println("WiFi connected");
+  display.drawString(0, 60, "WiFi connected");
+  Serial.println("IP address: ");
+  display.drawString(0, 90, "IP address: ");
+  display.drawString(60, 90, WiFi.localIP().toString().c_str());
+
+  Serial.println(WiFi.localIP());
+  Serial.println("");
+  Serial.println("WiFi Connected!");
+  display.display();
+
+  // config ntp time server
+  configTime(0, 0, NPT_SERVER);
+  waitForTime();
+
+  delay(1000);
+}
+
+void VextON(void) {
+  pinMode(18, OUTPUT);
+  digitalWrite(18, HIGH);
+}
+
+void VextOFF(void)  // Vext default OFF
+{
+  pinMode(18, OUTPUT);
+  digitalWrite(18, LOW);
+}
+
+void waitForTime() {
+  // Wait until SNTP sets a sane epoch (e.g., > Jan 1 2019)
+  time_t now = time(nullptr);
+  int retries = 0;
+  while (now < 1546300800 && retries < 60) {  // 2019-01-01
+    delay(500);
+    now = time(nullptr);
+    retries++;
+  }
+}
+
+void drawCurrentTime() {
+  time_t now = time(nullptr);
+  String isoTime = timestampToIso8601(now);
+  Serial.println(isoTime);
+  display.setFont(ArialMT_Plain_24);
+  display.drawString(10, 10, isoTime);
+}
+
+String timestampToIso8601(time_t t) {
+  struct tm tm;
+  gmtime_r(&t, &tm);  // UTC
+  char buf[21];       // "YYYY-MM-DDTHH:MM:SSZ" = 20 + NUL
+  strftime(buf, sizeof(buf), "%Y-%m-%dT%H:%M:%SZ", &tm);
+  return String(buf);
+}
+
+time_t iso8601ToTimestamp(const String& isoString) {
+  struct tm tm;
+  strptime(isoString.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
+  return mktime(&tm);
+}
+
+Booking jsonToBooking(const JsonObject& object) {
+  return Booking{.id = object["id"],
+                 .user_id = object["user_id"],
+                 .user_name = object["user_name"],
+                 .room_id = object["room_id"],
+                 .room_name = object["room_name"],
+                 .start_time = iso8601ToTimestamp(object["start_time"]),
+                 .end_time = iso8601ToTimestamp(object["end_time"]),
+                 .notes = object["notes"]};
+}
+
+std::vector<Booking> getBookings(int roomId) {
+  WiFiClient client;
+  HTTPClient http;
+
+  time_t now = time(nullptr);
+  String isoTime = timestampToIso8601(now);
+
+  // client.setInsecure();
+  String url = API_URL;
+  url += "?end_time=";
+  url += isoTime;
+  url += "&end_time_op=%3E";  // > operator
+  url += "&limit=2";
+  Serial.println(url);
+  String cookie = String("auth_token=") + AUTH_TOKEN;
+  http.addHeader("Cookie", cookie);
+  http.begin(client, url);
+  int code = http.GET();
+  if (code != HTTP_CODE_OK) {
+    Serial.println("Error while fetching bookings:");
+    Serial.println(code);
+    return std::vector<Booking>();
+  }
+  DynamicJsonDocument doc(2048);
+  DeserializationError jsonErr = deserializeJson(doc, http.getStream());
+  http.end();
+
+  if (jsonErr) {
+    Serial.println(jsonErr.c_str());
+    return std::vector<Booking>();
+  }
+  serializeJson(doc, Serial);
+
+  JsonArray arr = doc.as<JsonArray>();
+
+  if (arr.size() == 0) {
+    return std::vector<Booking>();
+  }
+
+  std::vector<Booking> bookings;
+  for (JsonObject item : arr) {
+    bookings.push_back(jsonToBooking(item));
+  }
+
+  return bookings;
+}
+
+RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
+  if (bookings.empty()) {
+    return RoomStatus{.hasNow = false, .hasNext = false};
+  }
+  time_t now = time(nullptr);
+  Booking firstBooking = bookings[0];
+  bool hasNow = firstBooking.start_time <= now;
+
+  if (!hasNow) {
+    // the room is currently vacant
+    // the first booking becomes the next booking
+    return RoomStatus{
+        .hasNow = false,
+        .hasNext = true,
+        .next = DisplayBooking{
+            .title = firstBooking.user_name,
+            .subtitle = String("Starts at ") +
+                        timestampToIso8601(firstBooking.start_time)}};
+  }
+
+  // the room is currently occupied
+  RoomStatus status =
+      RoomStatus{.hasNow = true,
+                 .now = DisplayBooking{
+                     .title = firstBooking.user_name,
+                     .subtitle = String("Ends at ") +
+                                 timestampToIso8601(firstBooking.end_time)}};
+
+  bool hasNext = bookings.size() > 1;
+  if (hasNext) {
+    // the room is currently occupied, and there is a next booking
+    Booking secondBooking = bookings[1];
+    status.hasNext = true;
+    status.next = DisplayBooking{
+        .title = secondBooking.user_name,
+        .subtitle = String("Starts at ") +
+                    timestampToIso8601(secondBooking.start_time)};
+  }
+  return status;
+}
+
+void drawRoomStatus(const RoomStatus& status) {
+  int cursor_y = 10;
+  if (status.hasNow) {
+    display.setFont(ArialMT_Plain_24);
+    display.drawString(10, cursor_y, status.now.title);
+    cursor_y += 24 + 6;
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(10, cursor_y, status.now.subtitle);
+    cursor_y += 16 + 6;
+  } else {
+    display.setFont(ArialMT_Plain_24);
+    display.drawString(10, cursor_y, "Vacant");
+    cursor_y += (24 + 6) + (16 + 6);
+  }
+  if (status.hasNext) {
+    display.setFont(ArialMT_Plain_24);
+    display.drawString(10, cursor_y, status.next.title);
+    cursor_y += 24 + 6;
+    display.setFont(ArialMT_Plain_16);
+    display.drawString(10, cursor_y, status.next.subtitle);
+    cursor_y += 16 + 6;
+  }
+}
+
+void loop() {
+  display.clear();
+  display.clear();
+  std::vector<Booking> bookings = getBookings(ROOM_ID);
+
+  Serial.println("Bookings:");
+  for (const Booking& booking : bookings) {
+    printBooking(booking);
+  }
+
+  RoomStatus status = getRoomStatus(bookings);
+  printRoomStatus(status);
+
+  drawRoomStatus(status);
+  display.display();
+  delay(10000);
+}
