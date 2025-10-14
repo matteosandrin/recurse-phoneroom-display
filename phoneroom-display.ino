@@ -288,26 +288,36 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
 }
 
 void drawRoomStatus(const RoomStatus& status) {
-  int cursor_y = 10;
+  int x = 10;
+  int cursor_y = 8;
+  int line_y = 76;
+
+  display.setFont(ArialMT_Plain_10);
+  display.drawString(x, cursor_y, "NOW");
+  cursor_y += 10 + 4;
+
   if (status.hasNow) {
     display.setFont(ArialMT_Plain_24);
-    display.drawString(10, cursor_y, status.now.title);
+    display.drawString(x, cursor_y, status.now.title);
     cursor_y += 24 + 6;
     display.setFont(ArialMT_Plain_16);
-    display.drawString(10, cursor_y, status.now.subtitle);
-    cursor_y += 16 + 6;
+    display.drawString(x, cursor_y, status.now.subtitle);
   } else {
     display.setFont(ArialMT_Plain_24);
-    display.drawString(10, cursor_y, "Vacant");
-    cursor_y += (24 + 6) + (16 + 6);
+    display.drawString(x, cursor_y, "VACANT");
   }
+  display.drawLine(0, line_y, SCREEN_WIDTH, line_y);
+  cursor_y = line_y;
   if (status.hasNext) {
-    display.setFont(ArialMT_Plain_24);
-    display.drawString(10, cursor_y, status.next.title);
-    cursor_y += 24 + 6;
+    cursor_y += 6;
+    display.setFont(ArialMT_Plain_10);
+    display.drawString(x, cursor_y, "NEXT");
+    cursor_y += 10 + 2;
     display.setFont(ArialMT_Plain_16);
-    display.drawString(10, cursor_y, status.next.subtitle);
-    cursor_y += 16 + 6;
+    display.drawString(x, cursor_y, status.next.title);
+    cursor_y += 16 + 2;
+    display.setFont(ArialMT_Plain_10);
+    display.drawString(x, cursor_y, status.next.subtitle);
   }
 }
 
