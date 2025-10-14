@@ -254,6 +254,10 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   Booking firstBooking = bookings[0];
   bool hasNow = firstBooking.start_time <= now;
 
+  String firstTitle = (firstBooking.notes.length() > 0)
+                          ? firstBooking.notes
+                          : firstBooking.user_name;
+
   if (!hasNow) {
     // the room is currently vacant
     // the first booking becomes the next booking
@@ -261,7 +265,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
         .hasNow = false,
         .hasNext = true,
         .next = DisplayBooking{
-            .title = firstBooking.user_name,
+            .title = firstTitle,
             .subtitle = String("Starts at ") +
                         timestampToIso8601(firstBooking.start_time)}};
   }
@@ -270,7 +274,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   RoomStatus status =
       RoomStatus{.hasNow = true,
                  .now = DisplayBooking{
-                     .title = firstBooking.user_name,
+                     .title = firstTitle,
                      .subtitle = String("Ends at ") +
                                  timestampToIso8601(firstBooking.end_time)}};
 
@@ -278,6 +282,9 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   if (hasNext) {
     // the room is currently occupied, and there is a next booking
     Booking secondBooking = bookings[1];
+    String secondTitle = (secondBooking.notes.length() > 0)
+                             ? secondBooking.notes
+                             : secondBooking.user_name;
     status.hasNext = true;
     status.next = DisplayBooking{
         .title = secondBooking.user_name,
