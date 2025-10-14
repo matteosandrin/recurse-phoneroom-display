@@ -20,6 +20,8 @@
   "56d884e77ab5f72644309c5c58a06ae88098c2493d1a03c776355852007d112d"
 #define ROOM_ID 1
 #define ROOM_NAME "Lovelace"
+// TODO(msandrin) handle daylight savings in timezone
+#define TZ_OFFSET -14400  // -04:00
 
 struct Booking {
   std::string id;
@@ -189,6 +191,14 @@ time_t iso8601ToTimestamp(const std::string& isoString) {
   return mktime(&tm);
 }
 
+std::string timestampToLocalHoursMins(time_t t) {
+  time_t local_t = t + (TZ_OFFSET);
+  struct tm* tm = gmtime(&local_t);
+  char buf[16];
+  strftime(buf, sizeof(buf), "%I:%M %P", tm);
+  return std::string(buf);
+}
+
 Booking jsonToBooking(const JsonObject& object) {
   return Booking{.id = object["id"],
                  .user_id = object["user_id"],
@@ -258,26 +268,30 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   std::string firstTitle = (firstBooking.notes.length() > 0)
                                ? firstBooking.notes
                                : firstBooking.user_name;
+  std::string firstSubtitle =
+      std::string("until ") + timestampToLocalHoursMins(firstBooking.end_time);
 
   if (!hasNow) {
     // the room is currently vacant
     // the first booking becomes the next booking
     return RoomStatus{
-        .hasNow = false,
+        .hasNow = true,
         .hasNext = true,
+        .now = DisplayBooking{.title = std::string("VACANT"),
+                              .subtitle = std::string("until ") +
+                                          timestampToLocalHoursMins(
+                                              firstBooking.start_time)},
         .next = DisplayBooking{
             .title = firstTitle,
-            .subtitle = std::string("Starts at ") +
-                        timestampToIso8601(firstBooking.start_time)}};
+            .subtitle = timestampToLocalHoursMins(firstBooking.start_time) +
+                        std::string(" - ") +
+                        timestampToLocalHoursMins(firstBooking.end_time)}};
   }
 
   // the room is currently occupied
-  RoomStatus status =
-      RoomStatus{.hasNow = true,
-                 .now = DisplayBooking{
-                     .title = firstTitle,
-                     .subtitle = std::string("Ends at ") +
-                                 timestampToIso8601(firstBooking.end_time)}};
+  RoomStatus status = RoomStatus{
+      .hasNow = true,
+      .now = DisplayBooking{.title = firstTitle, .subtitle = firstSubtitle}};
 
   bool hasNext = bookings.size() > 1;
   if (hasNext) {
@@ -286,11 +300,12 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
     std::string secondTitle = (secondBooking.notes.length() > 0)
                                   ? secondBooking.notes
                                   : secondBooking.user_name;
+    std::string secondSubtitle =
+        timestampToLocalHoursMins(secondBooking.start_time) +
+        std::string(" - ") + timestampToLocalHoursMins(secondBooking.end_time);
     status.hasNext = true;
-    status.next = DisplayBooking{
-        .title = secondBooking.user_name,
-        .subtitle = std::string("Starts at ") +
-                    timestampToIso8601(secondBooking.start_time)};
+    status.next = DisplayBooking{.title = secondBooking.user_name,
+                                 .subtitle = secondSubtitle};
   }
   return status;
 }
@@ -310,9 +325,6 @@ void drawRoomStatus(const RoomStatus& status) {
     cursor_y += 24 + 6;
     display.setFont(ArialMT_Plain_16);
     display.drawString(x, cursor_y, status.now.subtitle.c_str());
-  } else {
-    display.setFont(ArialMT_Plain_24);
-    display.drawString(x, cursor_y, "VACANT");
   }
   display.drawLine(0, line_y, SCREEN_WIDTH, line_y);
   cursor_y = line_y;
