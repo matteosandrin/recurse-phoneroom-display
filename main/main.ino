@@ -12,7 +12,6 @@
     "secrets.h not found! Please copy secrets.example.h to secrets.h and fill in your credentials."
 #endif
 
-// Global display object
 Display display;
 
 void setup() {
@@ -25,7 +24,7 @@ void setup() {
   delay(1000);
 }
 
-void loop() {
+void loop() {`
   display.clear();
 
   std::vector<Booking> bookings = getBookings(ROOM_ID);
