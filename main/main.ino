@@ -28,16 +28,13 @@ void setup() {
 void loop() {
   display.clear();
 
-  // Fetch bookings from API
   std::vector<Booking> bookings = getBookings(ROOM_ID);
 
-  // Debug output
   Serial.println("Bookings:");
   for (const Booking& booking : bookings) {
     printBooking(booking);
   }
 
-  // Determine and display room status
   RoomStatus status = getRoomStatus(bookings);
   printRoomStatus(status);
   display.drawRoomStatus(status);
