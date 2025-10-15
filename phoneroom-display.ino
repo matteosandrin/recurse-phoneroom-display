@@ -19,7 +19,7 @@
 #define API_URL "https://phoneroom.recurse.com/api/bookings"
 #define AUTH_TOKEN \
   "4ac2768024b9c36a08d5376dab32d0e532e40db372db6a8a85a5bb6d27710c5c"
-#define ROOM_ID 1
+#define ROOM_ID 2
 #define ROOM_NAME "Lovelace"
 // TODO(msandrin) handle daylight savings in timezone
 #define TZ_OFFSET -14400  // -04:00
@@ -223,6 +223,8 @@ std::vector<Booking> getBookings(int roomId) {
   url += "?end_time=";
   url += isoTime;
   url += "&end_time_op=%3E";  // > operator
+  url += "&room_id=";
+  url += std::to_string(ROOM_ID);
   url += "&limit=2";
   Serial.println(url.c_str());
   std::string cookie = std::string("auth_token=") + AUTH_TOKEN;
