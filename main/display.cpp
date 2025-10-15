@@ -58,14 +58,15 @@ void Display::drawRoomStatus(const RoomStatus& status) {
     display_->drawString(x, cursor_y, status.now.subtitle.c_str());
   }
 
-  display_->drawLine(0, line_y, SCREEN_WIDTH, line_y);
   cursor_y = line_y;
+  display_->drawLine(0, cursor_y, SCREEN_WIDTH, line_y);
+  cursor_y += 6;
+
+  display_->setFont(ArialMT_Plain_10);
+  display_->drawString(x, cursor_y, "NEXT");
+  cursor_y += 10 + 2;
 
   if (status.hasNext) {
-    cursor_y += 6;
-    display_->setFont(ArialMT_Plain_10);
-    display_->drawString(x, cursor_y, "NEXT");
-    cursor_y += 10 + 2;
     display_->setFont(ArialMT_Plain_16);
     display_->drawString(x, cursor_y, status.next.title.c_str());
     cursor_y += 16 + 2;

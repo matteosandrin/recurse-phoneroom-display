@@ -97,8 +97,14 @@ std::vector<Booking> getBookings(int roomId) {
 }
 
 RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
+  const DisplayBooking availableEodBooking =
+      DisplayBooking{.title = "AVAILABLE", .subtitle = "until end of day"};
+
   if (bookings.empty()) {
-    return RoomStatus{.hasNow = false, .hasNext = false};
+    return RoomStatus{.hasNow = true,
+                      .hasNext = true,
+                      .now = availableEodBooking,
+                      .next = availableEodBooking};
   }
 
   time_t now = time(nullptr);
@@ -112,12 +118,12 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
       std::string("until ") + timestampToLocalHoursMins(firstBooking.end_time);
 
   if (!hasNow) {
-    // The room is currently vacant
+    // The room is currently available
     // The first booking becomes the next booking
     return RoomStatus{
         .hasNow = true,
         .hasNext = true,
-        .now = DisplayBooking{.title = std::string("VACANT"),
+        .now = DisplayBooking{.title = std::string("AVAILABLE"),
                               .subtitle = std::string("until ") +
                                           timestampToLocalHoursMins(
                                               firstBooking.start_time)},
@@ -146,6 +152,9 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
     status.hasNext = true;
     status.next = DisplayBooking{.title = secondBooking.user_name,
                                  .subtitle = secondSubtitle};
+  } else {
+    status.hasNext = true;
+    status.next = availableEodBooking;
   }
 
   return status;
