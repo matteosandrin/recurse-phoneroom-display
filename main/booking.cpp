@@ -102,8 +102,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
       DisplayBooking{.title = "AVAILABLE", .subtitle = "until end of day"};
 
   if (bookings.empty()) {
-    return RoomStatus{.now = availableEodBooking,
-                      .next = availableEodBooking};
+    return RoomStatus{.now = availableEodBooking, .next = availableEodBooking};
   }
 
   time_t now = time(nullptr);
@@ -155,7 +154,6 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
 }
 
 bool areRoomStatusEqual(const RoomStatus& statusA, const RoomStatus& statusB) {
-
   if (statusA.now.title != statusB.now.title ||
       statusA.now.subtitle != statusB.now.subtitle) {
     return false;
