@@ -20,8 +20,6 @@ struct DisplayBooking {
 };
 
 struct RoomStatus {
-  bool hasNow;
-  bool hasNext;
   DisplayBooking now;
   DisplayBooking next;
 };

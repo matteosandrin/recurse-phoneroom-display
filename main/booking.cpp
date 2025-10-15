@@ -82,6 +82,7 @@ std::vector<Booking> getBookings(int roomId) {
   }
 
   serializeJson(doc, Serial);
+  Serial.println();
   JsonArray arr = doc.as<JsonArray>();
 
   if (arr.size() == 0) {
@@ -101,9 +102,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
       DisplayBooking{.title = "AVAILABLE", .subtitle = "until end of day"};
 
   if (bookings.empty()) {
-    return RoomStatus{.hasNow = true,
-                      .hasNext = true,
-                      .now = availableEodBooking,
+    return RoomStatus{.now = availableEodBooking,
                       .next = availableEodBooking};
   }
 
@@ -121,8 +120,6 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
     // The room is currently available
     // The first booking becomes the next booking
     return RoomStatus{
-        .hasNow = true,
-        .hasNext = true,
         .now = DisplayBooking{.title = std::string("AVAILABLE"),
                               .subtitle = std::string("until ") +
                                           timestampToLocalHoursMins(
@@ -136,7 +133,6 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
 
   // The room is currently occupied
   RoomStatus status = RoomStatus{
-      .hasNow = true,
       .now = DisplayBooking{.title = firstTitle, .subtitle = firstSubtitle}};
 
   bool hasNext = bookings.size() > 1;
@@ -149,11 +145,9 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
     std::string secondSubtitle =
         timestampToLocalHoursMins(secondBooking.start_time) +
         std::string(" - ") + timestampToLocalHoursMins(secondBooking.end_time);
-    status.hasNext = true;
     status.next = DisplayBooking{.title = secondBooking.user_name,
                                  .subtitle = secondSubtitle};
   } else {
-    status.hasNext = true;
     status.next = availableEodBooking;
   }
 
@@ -161,22 +155,15 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
 }
 
 bool areRoomStatusEqual(const RoomStatus& statusA, const RoomStatus& statusB) {
-  if (statusA.hasNow != statusB.hasNow || statusA.hasNext != statusB.hasNext) {
+
+  if (statusA.now.title != statusB.now.title ||
+      statusA.now.subtitle != statusB.now.subtitle) {
     return false;
   }
 
-  if (statusA.hasNow) {
-    if (statusA.now.title != statusB.now.title ||
-        statusA.now.subtitle != statusB.now.subtitle) {
-      return false;
-    }
-  }
-
-  if (statusA.hasNext) {
-    if (statusA.next.title != statusB.next.title ||
-        statusA.next.subtitle != statusB.next.subtitle) {
-      return false;
-    }
+  if (statusA.next.title != statusB.next.title ||
+      statusA.next.subtitle != statusB.next.subtitle) {
+    return false;
   }
 
   return true;
@@ -211,28 +198,20 @@ void printBooking(const Booking& booking) {
 
 void printRoomStatus(const RoomStatus& status) {
   Serial.println("RoomStatus {");
-  Serial.print("  hasNow: ");
-  Serial.println(status.hasNow ? "true" : "false");
-  Serial.print("  hasNext: ");
-  Serial.println(status.hasNext ? "true" : "false");
 
-  if (status.hasNow) {
-    Serial.println("  now: {");
-    Serial.print("    title: ");
-    Serial.println(status.now.title.c_str());
-    Serial.print("    subtitle: ");
-    Serial.println(status.now.subtitle.c_str());
-    Serial.println("  }");
-  }
+  Serial.println("  now: {");
+  Serial.print("    title: ");
+  Serial.println(status.now.title.c_str());
+  Serial.print("    subtitle: ");
+  Serial.println(status.now.subtitle.c_str());
+  Serial.println("  }");
 
-  if (status.hasNext) {
-    Serial.println("  next: {");
-    Serial.print("    title: ");
-    Serial.println(status.next.title.c_str());
-    Serial.print("    subtitle: ");
-    Serial.println(status.next.subtitle.c_str());
-    Serial.println("  }");
-  }
+  Serial.println("  next: {");
+  Serial.print("    title: ");
+  Serial.println(status.next.title.c_str());
+  Serial.print("    subtitle: ");
+  Serial.println(status.next.subtitle.c_str());
+  Serial.println("  }");
 
   Serial.println("}");
 }
