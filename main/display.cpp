@@ -88,6 +88,14 @@ void Display::drawRoomIcon(int room_id) {
   }
 }
 
+void Display::drawError() {
+  int x = (SCREEN_WIDTH - error_icon_width - lovelace_logo_width) / 2;
+  int y = (SCREEN_HEIGHT - error_icon_height) / 2;
+  display_->drawXbm(x, y, error_icon_width, error_icon_height, error_icon_bits);
+  this->drawRoomIcon(ROOM_ID);
+  this->update();
+}
+
 void Display::drawStringLimit(int x, int y, std::string str, int width) {
   // If the string fits within the width limit, draw it as-is
   if (display_->getStringWidth(str.c_str()) <= width) {

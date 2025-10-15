@@ -15,6 +15,7 @@
 
 Display display;
 RoomStatus oldStatus;
+int errorCount = 0;
 
 void setup() {
   Serial.begin(115200);
@@ -29,7 +30,25 @@ void setup() {
 void loop() {
   display.clear();
 
-  std::vector<Booking> bookings = getBookings(ROOM_ID);
+  std::vector<Booking> bookings;
+
+  try {
+    bookings = getBookings(ROOM_ID);
+    errorCount = 0;
+  } catch (const std::exception& e) {
+    Serial.println(e.what());
+    errorCount += 1;
+    Serial.printf("Error count: %d\n", errorCount);
+    if (errorCount > MAX_ERROR_COUNT) {
+      display.drawError();
+      // wait longer if there are more than MAX_ERROR_COUNT errors
+      delay(ERR_REFRESH_INTERVAL);
+    } else {
+      delay(REFRESH_INTERVAL);
+    }
+    // return early, keep what's on screen
+    return;
+  }
 
   Serial.println("Bookings:");
   for (const Booking& booking : bookings) {

@@ -18,6 +18,8 @@ class Display {
   void drawWifiDebug();
 
   void drawRoomStatus(const RoomStatus& status);
+  
+  void drawError();
 
   void clear();
 

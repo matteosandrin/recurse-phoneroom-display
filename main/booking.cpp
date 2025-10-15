@@ -69,7 +69,7 @@ std::vector<Booking> getBookings(int roomId) {
   if (code != HTTP_CODE_OK) {
     Serial.println("Error while fetching bookings:");
     Serial.println(http.errorToString(code));
-    return std::vector<Booking>();
+    throw std::runtime_error("Exception occurred during HTTP request");
   }
 
   DynamicJsonDocument doc(2048);
@@ -78,7 +78,7 @@ std::vector<Booking> getBookings(int roomId) {
 
   if (jsonErr) {
     Serial.println(jsonErr.c_str());
-    return std::vector<Booking>();
+    throw std::runtime_error("Exception occurred while deserializing JSON");
   }
 
   serializeJson(doc, Serial);

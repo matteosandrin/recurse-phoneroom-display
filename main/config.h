@@ -14,6 +14,10 @@
 #define ROOM_ID ROOM_ID_LOVELACE
 #define ROOM_NAME "Lovelace"
 
+#define MAX_ERROR_COUNT 5
+#define REFRESH_INTERVAL 10000  // 10 seconds
+#define ERR_REFRESH_INTERVAL 60000  // 60 seconds
+
 // TODO(msandrin) handle daylight savings in timezone
 #define TZ_OFFSET -14400  // -04:00 (Eastern Daylight Time)
 
@@ -26,6 +30,5 @@
 #define PIN_MISO -1
 #define PIN_FREQUENCY 6000000
 #define PIN_VEXT 18
-#define REFRESH_INTERVAL 10000  // 10 seconds
 
 #endif  // CONFIG_H
