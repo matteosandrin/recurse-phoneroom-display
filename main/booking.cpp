@@ -135,6 +135,28 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
   return status;
 }
 
+bool areRoomStatusEqual(const RoomStatus& statusA, const RoomStatus& statusB) {
+  if (statusA.hasNow != statusB.hasNow || statusA.hasNext != statusB.hasNext) {
+    return false;
+  }
+
+  if (statusA.hasNow) {
+    if (statusA.now.title != statusB.now.title ||
+        statusA.now.subtitle != statusB.now.subtitle) {
+      return false;
+    }
+  }
+
+  if (statusA.hasNext) {
+    if (statusA.next.title != statusB.next.title ||
+        statusA.next.subtitle != statusB.next.subtitle) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 void printBooking(const Booking& booking) {
   Serial.println("Booking {");
   Serial.print("  id: ");

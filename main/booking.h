@@ -13,6 +13,8 @@ std::vector<Booking> getBookings(int roomId);
 
 RoomStatus getRoomStatus(const std::vector<Booking>& bookings);
 
+bool areRoomStatusEqual(const RoomStatus& statusA, const RoomStatus& statusB);
+
 void printBooking(const Booking& booking);
 void printRoomStatus(const RoomStatus& status);
 

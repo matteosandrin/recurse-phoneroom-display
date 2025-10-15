@@ -14,6 +14,7 @@
 #endif
 
 Display display;
+RoomStatus oldStatus;
 
 void setup() {
   Serial.begin(115200);
@@ -35,9 +36,16 @@ void loop() {
     printBooking(booking);
   }
 
-  RoomStatus status = getRoomStatus(bookings);
-  printRoomStatus(status);
-  display.drawRoomStatus(status);
+  RoomStatus newStatus = getRoomStatus(bookings);
+  printRoomStatus(newStatus);
+
+  if (!areRoomStatusEqual(oldStatus, newStatus)) {
+    Serial.println("New status, update display.");
+    display.drawRoomStatus(newStatus);
+    oldStatus = newStatus;
+  } else {
+    Serial.println("Status is the same, not updating display.");
+  }
 
   delay(REFRESH_INTERVAL);
 }
