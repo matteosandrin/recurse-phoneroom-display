@@ -1,6 +1,6 @@
-CLI = arduino-cli
-FQBN = esp32:esp32:heltec_vision_master_e290
-PORT = /dev/cu.usbmodem101
+CLI := arduino-cli
+FQBN := esp32:esp32:heltec_vision_master_e290
+PORT := $(shell ls -1 /dev/cu.usbmodem* | head -n 1)
 
 build:
 	${CLI} compile -b ${FQBN} -v
