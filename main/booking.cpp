@@ -21,18 +21,34 @@ Booking jsonToBooking(const JsonObject& object) {
                  .notes = object["notes"]};
 }
 
+time_t getNextMidnight(time_t t) {
+  time_t localTime = t + TZ_OFFSET;
+  // Calculate the start of the next day (next midnight) in local time
+  time_t oneDay = 86400;
+  time_t nextMidnightLocal = ((localTime / oneDay) + 1) * oneDay;
+  return nextMidnightLocal - TZ_OFFSET;
+}
+
 std::vector<Booking> getBookings(int roomId) {
   WiFiClientSecure clientSecure;
   WiFiClient client;
   HTTPClient http;
 
   time_t now = time(nullptr);
-  std::string isoTime = timestampToIso8601(now);
+  std::string nowIsoTime = timestampToIso8601(now);
+
+  time_t nextMidnight = getNextMidnight(now);
+  std::string nextMidnightIsoTime = timestampToIso8601(nextMidnight);
 
   std::string url = API_URL;
+  // end_time is after now
   url += "?end_time=";
-  url += isoTime;
+  url += nowIsoTime;
   url += "&end_time_op=%3E";  // > operator
+  // start_time is before midnight today
+  url += "&start_time=";
+  url += nextMidnightIsoTime;
+  url += "&start_time_op=%3C";  // < operator
   url += "&room_id=";
   url += std::to_string(ROOM_ID);
   url += "&limit=2";
