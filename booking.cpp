@@ -1,0 +1,127 @@
+#include "booking.h"
+
+#include <Arduino.h>
+
+#include "time.h"
+#include "time_utils.h"
+
+Booking jsonToBooking(const JsonObject& object) {
+  return Booking{.id = object["id"],
+                 .user_id = object["user_id"],
+                 .user_name = object["user_name"],
+                 .room_id = object["room_id"],
+                 .room_name = object["room_name"],
+                 .start_time = iso8601ToTimestamp(object["start_time"]),
+                 .end_time = iso8601ToTimestamp(object["end_time"]),
+                 .notes = object["notes"]};
+}
+
+RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
+  if (bookings.empty()) {
+    return RoomStatus{.hasNow = false, .hasNext = false};
+  }
+
+  time_t now = time(nullptr);
+  Booking firstBooking = bookings[0];
+  bool hasNow = firstBooking.start_time <= now;
+
+  std::string firstTitle = (firstBooking.notes.length() > 0)
+                               ? firstBooking.notes
+                               : firstBooking.user_name;
+  std::string firstSubtitle =
+      std::string("until ") + timestampToLocalHoursMins(firstBooking.end_time);
+
+  if (!hasNow) {
+    // The room is currently vacant
+    // The first booking becomes the next booking
+    return RoomStatus{
+        .hasNow = true,
+        .hasNext = true,
+        .now = DisplayBooking{.title = std::string("VACANT"),
+                              .subtitle = std::string("until ") +
+                                          timestampToLocalHoursMins(
+                                              firstBooking.start_time)},
+        .next = DisplayBooking{
+            .title = firstTitle,
+            .subtitle = timestampToLocalHoursMins(firstBooking.start_time) +
+                        std::string(" - ") +
+                        timestampToLocalHoursMins(firstBooking.end_time)}};
+  }
+
+  // The room is currently occupied
+  RoomStatus status = RoomStatus{
+      .hasNow = true,
+      .now = DisplayBooking{.title = firstTitle, .subtitle = firstSubtitle}};
+
+  bool hasNext = bookings.size() > 1;
+  if (hasNext) {
+    // The room is currently occupied, and there is a next booking
+    Booking secondBooking = bookings[1];
+    std::string secondTitle = (secondBooking.notes.length() > 0)
+                                  ? secondBooking.notes
+                                  : secondBooking.user_name;
+    std::string secondSubtitle =
+        timestampToLocalHoursMins(secondBooking.start_time) +
+        std::string(" - ") + timestampToLocalHoursMins(secondBooking.end_time);
+    status.hasNext = true;
+    status.next = DisplayBooking{.title = secondBooking.user_name,
+                                 .subtitle = secondSubtitle};
+  }
+
+  return status;
+}
+
+void printBooking(const Booking& booking) {
+  Serial.println("Booking {");
+  Serial.print("  id: ");
+  Serial.println(booking.id.c_str());
+  Serial.print("  user_id: ");
+  Serial.println(booking.user_id.c_str());
+  Serial.print("  user_name: ");
+  Serial.println(booking.user_name.c_str());
+  Serial.print("  room_id: ");
+  Serial.println(booking.room_id.c_str());
+  Serial.print("  room_name: ");
+  Serial.println(booking.room_name.c_str());
+  Serial.print("  start_time: ");
+  Serial.print(booking.start_time);
+  Serial.print(" (");
+  Serial.print(timestampToIso8601(booking.start_time).c_str());
+  Serial.println(")");
+  Serial.print("  end_time: ");
+  Serial.print(booking.end_time);
+  Serial.print(" (");
+  Serial.print(timestampToIso8601(booking.end_time).c_str());
+  Serial.println(")");
+  Serial.print("  notes: ");
+  Serial.println(booking.notes.c_str());
+  Serial.println("}");
+}
+
+void printRoomStatus(const RoomStatus& status) {
+  Serial.println("RoomStatus {");
+  Serial.print("  hasNow: ");
+  Serial.println(status.hasNow ? "true" : "false");
+  Serial.print("  hasNext: ");
+  Serial.println(status.hasNext ? "true" : "false");
+
+  if (status.hasNow) {
+    Serial.println("  now: {");
+    Serial.print("    title: ");
+    Serial.println(status.now.title.c_str());
+    Serial.print("    subtitle: ");
+    Serial.println(status.now.subtitle.c_str());
+    Serial.println("  }");
+  }
+
+  if (status.hasNext) {
+    Serial.println("  next: {");
+    Serial.print("    title: ");
+    Serial.println(status.next.title.c_str());
+    Serial.print("    subtitle: ");
+    Serial.println(status.next.subtitle.c_str());
+    Serial.println("  }");
+  }
+
+  Serial.println("}");
+}

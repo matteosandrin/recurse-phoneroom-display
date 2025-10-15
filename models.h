@@ -1,0 +1,29 @@
+#ifndef MODELS_H
+#define MODELS_H
+
+#include <string>
+
+struct Booking {
+  std::string id;
+  std::string user_id;
+  std::string user_name;
+  std::string room_id;
+  std::string room_name;
+  long start_time;
+  long end_time;
+  std::string notes;
+};
+
+struct DisplayBooking {
+  std::string title;
+  std::string subtitle;
+};
+
+struct RoomStatus {
+  bool hasNow;
+  bool hasNext;
+  DisplayBooking now;
+  DisplayBooking next;
+};
+
+#endif  // MODELS_H
