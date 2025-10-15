@@ -1,8 +1,9 @@
+#include <WiFi.h>
+
 #include "booking.h"
 #include "config.h"
 #include "display.h"
 #include "models.h"
-#include "network_utils.h"
 #include "time_utils.h"
 
 #if __has_include("secrets.h")
@@ -24,7 +25,7 @@ void setup() {
   delay(1000);
 }
 
-void loop() {`
+void loop() {
   display.clear();
 
   std::vector<Booking> bookings = getBookings(ROOM_ID);
@@ -37,5 +38,13 @@ void loop() {`
   RoomStatus status = getRoomStatus(bookings);
   printRoomStatus(status);
   display.drawRoomStatus(status);
+
   delay(REFRESH_INTERVAL);
+}
+
+void connectWifi() {
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
 }

@@ -9,6 +9,8 @@
 
 Booking jsonToBooking(const JsonObject& object);
 
+std::vector<Booking> getBookings(int roomId);
+
 RoomStatus getRoomStatus(const std::vector<Booking>& bookings);
 
 void printBooking(const Booking& booking);
