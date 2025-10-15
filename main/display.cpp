@@ -4,6 +4,7 @@
 
 #include "HT_DEPG0290BxS800FxX_BW.h"
 #include "config.h"
+#include "icons/icons.h"
 #include "secrets.h"
 
 Display::Display() : display_(nullptr) {}
@@ -42,7 +43,7 @@ void Display::drawWifiDebug() {
 
 void Display::drawRoomStatus(const RoomStatus& status) {
   int x = 10;
-  int cursor_y = 8; 
+  int cursor_y = 8;
   int line_y = 76;
 
   display_->setFont(ArialMT_Plain_10);
@@ -71,12 +72,21 @@ void Display::drawRoomStatus(const RoomStatus& status) {
     display_->setFont(ArialMT_Plain_10);
     display_->drawString(x, cursor_y, status.next.subtitle.c_str());
   }
+  this->drawRoomIcon(ROOM_ID);
   this->update();
 }
 
 void Display::clear() { display_->clear(); }
 
 void Display::update() { display_->display(); }
+
+void Display::drawRoomIcon(int room_id) {
+  if (room_id == ROOM_ID_LOVELACE) {
+    display_->drawXbm(SCREEN_WIDTH - lovelace_logo_width, 0,
+                      lovelace_logo_width, lovelace_logo_height,
+                      lovelace_logo_bits);
+  }
+}
 
 void Display::VextON() {
   pinMode(PIN_VEXT, OUTPUT);

@@ -26,6 +26,7 @@ class Display {
  private:
   DEPG0290BxS800FxX_BW* display_;
 
+  void drawRoomIcon(int room_id);
   void VextON();
   void VextOFF();
 };

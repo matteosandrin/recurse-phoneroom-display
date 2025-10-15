@@ -8,7 +8,10 @@
 #define NPT_SERVER "time.google.com"
 #define API_URL "https://phoneroom.recurse.com/api/bookings"
 
-#define ROOM_ID 2
+#define ROOM_ID_GREEN 1
+#define ROOM_ID_LOVELACE 2
+
+#define ROOM_ID ROOM_ID_LOVELACE
 #define ROOM_NAME "Lovelace"
 
 // TODO(msandrin) handle daylight savings in timezone
