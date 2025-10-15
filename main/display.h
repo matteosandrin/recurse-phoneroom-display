@@ -27,6 +27,7 @@ class Display {
   DEPG0290BxS800FxX_BW* display_;
 
   void drawRoomIcon(int room_id);
+  void drawStringLimit(int x, int y, std::string str, int width);
   void VextON();
   void VextOFF();
 };
