@@ -96,6 +96,15 @@ void Display::drawError() {
   this->update();
 }
 
+void Display::drawHappyMac() {
+  int x = (SCREEN_WIDTH - happy_mac_icon_width - lovelace_logo_width) / 2;
+  int y = (SCREEN_HEIGHT - happy_mac_icon_height) / 2;
+  display_->drawXbm(x, y, happy_mac_icon_width, happy_mac_icon_height,
+                    happy_mac_icon_bits);
+  this->drawRoomIcon(ROOM_ID);
+  this->update();
+}
+
 void Display::drawStringLimit(int x, int y, std::string str, int width) {
   // If the string fits within the width limit, draw it as-is
   if (display_->getStringWidth(str.c_str()) <= width) {

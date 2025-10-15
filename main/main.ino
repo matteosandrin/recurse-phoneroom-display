@@ -20,7 +20,7 @@ int errorCount = 0;
 void setup() {
   Serial.begin(115200);
   display.init();
-  display.drawWifiDebug();
+  display.drawHappyMac();
   connectWifi();
   configTime(0, 0, NPT_SERVER);
   waitForTime();

@@ -21,6 +21,8 @@ class Display {
   
   void drawError();
 
+  void drawHappyMac();
+
   void clear();
 
   void update();
