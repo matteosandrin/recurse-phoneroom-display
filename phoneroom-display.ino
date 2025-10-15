@@ -10,15 +10,17 @@
 #include "HT_DEPG0290BxS800FxX_BW.h"
 #include "time.h"
 
+#if __has_include("secrets.h")
+  #include "secrets.h"
+#else
+  #error "secrets.h not found! Please copy secrets.example.h to secrets.h and fill in your credentials."
+#endif
+
 #define DIRECTION ANGLE_0_DEGREE
 #define SCREEN_WIDTH 296
 #define SCREEN_HEIGHT 128
-#define WIFI_SSID "Recurse Center"
-#define WIFI_PASSWORD "nevergraduate!"
 #define NPT_SERVER "time.google.com"
 #define API_URL "https://phoneroom.recurse.com/api/bookings"
-#define AUTH_TOKEN \
-  "4ac2768024b9c36a08d5376dab32d0e532e40db372db6a8a85a5bb6d27710c5c"
 #define ROOM_ID 2
 #define ROOM_NAME "Lovelace"
 // TODO(msandrin) handle daylight savings in timezone
