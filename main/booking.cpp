@@ -144,7 +144,7 @@ RoomStatus getRoomStatus(const std::vector<Booking>& bookings) {
     std::string secondSubtitle =
         timestampToLocalHoursMins(secondBooking.start_time) +
         std::string(" - ") + timestampToLocalHoursMins(secondBooking.end_time);
-    status.next = DisplayBooking{.title = secondBooking.user_name,
+    status.next = DisplayBooking{.title = secondTitle,
                                  .subtitle = secondSubtitle};
   } else {
     status.next = availableEodBooking;
