@@ -2,6 +2,7 @@
 #include <HTTPClient.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
+#include <WiFiClientSecure.h>
 
 #include <string>
 #include <vector>
@@ -15,9 +16,9 @@
 #define WIFI_SSID "Recurse Center"
 #define WIFI_PASSWORD "nevergraduate!"
 #define NPT_SERVER "time.google.com"
-#define API_URL "http://10.100.16.230:3000/api/bookings"
+#define API_URL "https://phoneroom.recurse.com/api/bookings"
 #define AUTH_TOKEN \
-  "56d884e77ab5f72644309c5c58a06ae88098c2493d1a03c776355852007d112d"
+  "4ac2768024b9c36a08d5376dab32d0e532e40db372db6a8a85a5bb6d27710c5c"
 #define ROOM_ID 1
 #define ROOM_NAME "Lovelace"
 // TODO(msandrin) handle daylight savings in timezone
@@ -211,13 +212,13 @@ Booking jsonToBooking(const JsonObject& object) {
 }
 
 std::vector<Booking> getBookings(int roomId) {
+  WiFiClientSecure clientSecure;
   WiFiClient client;
   HTTPClient http;
 
   time_t now = time(nullptr);
   std::string isoTime = timestampToIso8601(now);
 
-  // client.setInsecure();
   std::string url = API_URL;
   url += "?end_time=";
   url += isoTime;
@@ -226,11 +227,19 @@ std::vector<Booking> getBookings(int roomId) {
   Serial.println(url.c_str());
   std::string cookie = std::string("auth_token=") + AUTH_TOKEN;
   http.addHeader("Cookie", cookie.c_str());
-  http.begin(client, url.c_str());
+
+  // Use HTTPS or HTTP based on the URL scheme
+  if (url.find("https://") == 0) {
+    clientSecure.setInsecure();  // Skip certificate validation
+    http.begin(clientSecure, url.c_str());
+  } else {
+    http.begin(client, url.c_str());
+  }
+
   int code = http.GET();
   if (code != HTTP_CODE_OK) {
     Serial.println("Error while fetching bookings:");
-    Serial.println(code);
+    Serial.println(http.errorToString(code));
     return std::vector<Booking>();
   }
   DynamicJsonDocument doc(2048);
