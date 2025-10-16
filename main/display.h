@@ -21,7 +21,7 @@ class Display {
 
   void drawSadMac(std::string message);
 
-  void drawHappyMac();
+  void drawHappyMac(std::string message);
 
   void clear();
 

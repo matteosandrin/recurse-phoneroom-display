@@ -91,9 +91,7 @@ void Display::drawSadMac(std::string message) {
                             error_icon_bits);
 }
 
-void Display::drawHappyMac() {
-  std::string message =
-      std::string("connecting to \"") + std::string(WIFI_SSID) + "\"...";
+void Display::drawHappyMac(std::string message) {
   this->drawIconWithMessage(message, happy_mac_icon_width,
                             happy_mac_icon_height, happy_mac_icon_bits);
 }

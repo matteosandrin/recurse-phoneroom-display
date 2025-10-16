@@ -20,7 +20,9 @@ int errorCount = 0;
 void setup() {
   Serial.begin(115200);
   display.init();
-  display.drawHappyMac();
+  std::string message =
+      std::string("connecting to \"") + std::string(WIFI_SSID) + "\"...";
+  display.drawHappyMac(message);
   int status = connectWifi();
   if (status != 0) {
     display.clear();
