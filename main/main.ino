@@ -23,14 +23,13 @@ void setup() {
   std::string message =
       std::string("connecting to \"") + std::string(WIFI_SSID) + "\"...";
   display.drawHappyMac(message);
-  int status = connectWifi();
-  if (status != 0) {
+  if (connectWifi() != 0) {
     display.clear();
     display.drawSadMac(std::string("Connection failed :("));
     delay(5000);
     ESP.restart();
   } 
-  setupTime("EST5EDT,M3.2.0,M11.1.0");
+  setupTime();
   delay(1000);
 }
 

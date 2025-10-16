@@ -5,9 +5,9 @@
 
 #include "time.h"
 
-void setupTime(char *timezone);
+void setupTime();
 
-void _waitForTime();
+bool _waitForTime();
 
 std::string timestampToIso8601(time_t t);
 

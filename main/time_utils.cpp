@@ -4,22 +4,24 @@
 
 #include "config.h"
 
-void setupTime(char *timezone) {
-  configTime(0, 0, NPT_SERVER);
-  _waitForTime();
-  setenv("TZ", timezone, 1);
+void setupTime() {
+  setenv("TZ", TIMEZONE, 1);
   tzset();
+  configTzTime(TIMEZONE, NTP_SERVER_1, NTP_SERVER_2);
+  if (!_waitForTime()) {
+    Serial.println("Time sync failed");
+    return;
+  }
+  Serial.println("Time synced!");
 }
 
-void _waitForTime() {
-  // Wait until SNTP sets a sane epoch (e.g., > Jan 1 2019)
-  time_t now = time(nullptr);
-  int retries = 0;
-  while (now < 1546300800 && retries < 60) {  // 2019-01-01
-    delay(500);
-    now = time(nullptr);
-    retries++;
-  }
+bool _waitForTime() {
+  struct tm tm;
+  bool status = getLocalTime(&tm, 15000);
+  char buf[32];
+  strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S %Z", &tm);
+  Serial.println(buf);
+  return status;
 }
 
 std::string timestampToIso8601(time_t t) {
@@ -37,19 +39,25 @@ time_t iso8601ToTimestamp(const std::string& isoString) {
 }
 
 std::string timestampToLocalHoursMins(time_t t) {
-  time_t local_t = t + (TZ_OFFSET);
-  struct tm* tm = gmtime(&local_t);
+  setenv("TZ", TIMEZONE, 1);
+  tzset();
+  struct tm tm;
+  localtime_r(&t, &tm);
   char buf[16];
-  strftime(buf, sizeof(buf), "%I:%M %P", tm);
+  strftime(buf, sizeof(buf), "%I:%M %P", &tm);
   return std::string(buf);
 }
 
 time_t getNextMidnight(time_t t) {
-  time_t localTime = t + TZ_OFFSET;
-  // Calculate the start of the next day (next midnight) in local time
-  time_t oneDay = 86400;
-  time_t nextMidnightLocal = ((localTime / oneDay) + 1) * oneDay;
-  return nextMidnightLocal - TZ_OFFSET;
+  setenv("TZ", TIMEZONE, 1);
+  tzset();
+  struct tm tm;
+  localtime_r(&t, &tm);
+  tm.tm_hour = 0;
+  tm.tm_min = 0;
+  tm.tm_sec = 0;
+  tm.tm_mday += 1;
+  return mktime(&tm);
 }
 
 // this function will always operate on UTC timezone

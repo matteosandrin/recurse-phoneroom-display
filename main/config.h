@@ -5,7 +5,8 @@
 #define SCREEN_WIDTH 296
 #define SCREEN_HEIGHT 128
 
-#define NPT_SERVER "time.google.com"
+#define NTP_SERVER_1 "pool.ntp.org"
+#define NTP_SERVER_2 "time.nist.gov"
 #define API_URL "https://phoneroom.recurse.com/api/bookings"
 
 #define ROOM_ID_GREEN 1
@@ -18,8 +19,7 @@
 #define REFRESH_INTERVAL 10000  // 10 seconds
 #define ERR_REFRESH_INTERVAL 60000  // 60 seconds
 
-// TODO(msandrin) handle daylight savings in timezone
-#define TZ_OFFSET -14400  // -04:00 (Eastern Daylight Time)
+#define TIMEZONE "EST5EDT,M3.2.0/2,M11.1.0/2"
 
 #define PIN_RST 5
 #define PIN_DC 4

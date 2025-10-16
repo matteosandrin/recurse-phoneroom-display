@@ -3,14 +3,16 @@
 
 #include <string>
 
+#include "time.h"
+
 struct Booking {
   std::string id;
   std::string user_id;
   std::string user_name;
   std::string room_id;
   std::string room_name;
-  long start_time;
-  long end_time;
+  time_t start_time;
+  time_t end_time;
   std::string notes;
 };
 
