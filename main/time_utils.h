@@ -13,6 +13,8 @@ time_t iso8601ToTimestamp(const std::string& isoString);
 
 std::string timestampToLocalHoursMins(time_t t);
 
+time_t getNextMidnight(time_t t);
+
 time_t timegm(struct tm* tm);
 
 #endif  // TIME_UTILS_H

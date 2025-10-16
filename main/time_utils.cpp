@@ -37,6 +37,14 @@ std::string timestampToLocalHoursMins(time_t t) {
   return std::string(buf);
 }
 
+time_t getNextMidnight(time_t t) {
+  time_t localTime = t + TZ_OFFSET;
+  // Calculate the start of the next day (next midnight) in local time
+  time_t oneDay = 86400;
+  time_t nextMidnightLocal = ((localTime / oneDay) + 1) * oneDay;
+  return nextMidnightLocal - TZ_OFFSET;
+}
+
 // this function will always operate on UTC timezone
 time_t timegm(struct tm* tm) {
   char* original_tz = getenv("TZ");

@@ -21,14 +21,6 @@ Booking jsonToBooking(const JsonObject& object) {
                  .notes = object["notes"]};
 }
 
-time_t getNextMidnight(time_t t) {
-  time_t localTime = t + TZ_OFFSET;
-  // Calculate the start of the next day (next midnight) in local time
-  time_t oneDay = 86400;
-  time_t nextMidnightLocal = ((localTime / oneDay) + 1) * oneDay;
-  return nextMidnightLocal - TZ_OFFSET;
-}
-
 std::vector<Booking> getBookings(int roomId) {
   WiFiClientSecure clientSecure;
   WiFiClient client;
