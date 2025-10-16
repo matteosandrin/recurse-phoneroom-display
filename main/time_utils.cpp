@@ -26,7 +26,7 @@ std::string timestampToIso8601(time_t t) {
 time_t iso8601ToTimestamp(const std::string& isoString) {
   struct tm tm;
   strptime(isoString.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
-  return mktime(&tm);
+  return timegm(&tm);
 }
 
 std::string timestampToLocalHoursMins(time_t t) {
@@ -35,4 +35,25 @@ std::string timestampToLocalHoursMins(time_t t) {
   char buf[16];
   strftime(buf, sizeof(buf), "%I:%M %P", tm);
   return std::string(buf);
+}
+
+// this function will always operate on UTC timezone
+time_t timegm(struct tm* tm) {
+  char* original_tz = getenv("TZ");
+
+  // Set the timezone to UTC for the mktime calculation
+  setenv("TZ", "UTC", 1);
+  tzset();
+
+  time_t t = mktime(tm);
+
+  // Restore the original timezone setting
+  if (original_tz) {
+    setenv("TZ", original_tz, 1);
+  } else {
+    unsetenv("TZ");
+  }
+  tzset();
+
+  return t;
 }
