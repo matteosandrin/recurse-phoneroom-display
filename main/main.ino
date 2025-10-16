@@ -21,7 +21,13 @@ void setup() {
   Serial.begin(115200);
   display.init();
   display.drawHappyMac();
-  connectWifi();
+  int status = connectWifi();
+  if (status != 0) {
+    display.clear();
+    display.drawSadMac(std::string("Connection failed :("));
+    delay(5000);
+    ESP.restart();
+  }
   configTime(0, 0, NPT_SERVER);
   waitForTime();
   delay(1000);
@@ -40,7 +46,7 @@ void loop() {
     errorCount += 1;
     Serial.printf("Error count: %d\n", errorCount);
     if (errorCount > MAX_ERROR_COUNT) {
-      display.drawError();
+      display.drawSadMac(std::string(e.what()));
       // wait longer if there are more than MAX_ERROR_COUNT errors
       delay(ERR_REFRESH_INTERVAL);
     } else {
@@ -69,9 +75,18 @@ void loop() {
   delay(REFRESH_INTERVAL);
 }
 
-void connectWifi() {
+int connectWifi() {
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+  int counter = 0;
   WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    counter += 1;
+    if (counter > 60) {
+      Serial.print("Failed to connect to wifi");
+      return -1;
+    }
   }
+  return 0;
 }

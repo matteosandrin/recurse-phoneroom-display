@@ -34,9 +34,7 @@ void Display::init() {
 
 void Display::drawWifiDebug() {
   display_->drawString(0, 0, "init >>> ");
-  Serial.print("Connecting to ");
   display_->drawString(0, 20, "Connecting to ... ");
-  Serial.println(WIFI_SSID);
   display_->drawString(100, 20, WIFI_SSID);
   this->update();
 }
@@ -88,21 +86,31 @@ void Display::drawRoomIcon(int room_id) {
   }
 }
 
-void Display::drawError() {
-  int x = (SCREEN_WIDTH - error_icon_width - lovelace_logo_width) / 2;
-  int y = (SCREEN_HEIGHT - error_icon_height) / 2;
-  display_->drawXbm(x, y, error_icon_width, error_icon_height, error_icon_bits);
-  this->drawRoomIcon(ROOM_ID);
-  this->update();
+void Display::drawSadMac(std::string message) {
+  this->drawIconWithMessage(message, error_icon_width, error_icon_height,
+                            error_icon_bits);
 }
 
 void Display::drawHappyMac() {
-  int x = (SCREEN_WIDTH - happy_mac_icon_width - lovelace_logo_width) / 2;
-  int y = (SCREEN_HEIGHT - happy_mac_icon_height) / 2;
-  display_->drawXbm(x, y, happy_mac_icon_width, happy_mac_icon_height,
-                    happy_mac_icon_bits);
-  this->drawRoomIcon(ROOM_ID);
+  std::string message =
+      std::string("connecting to \"") + std::string(WIFI_SSID) + "\"...";
+  this->drawIconWithMessage(message, happy_mac_icon_width,
+                            happy_mac_icon_height, happy_mac_icon_bits);
+}
+
+void Display::drawIconWithMessage(std::string message, int width, int height,
+                                  const uint8_t* bits) {
+  int x = (SCREEN_WIDTH - width) / 2;
+  int y = 8;
+  int text_x = (SCREEN_WIDTH) / 2;
+  int text_y = y + height + 4;
+
+  display_->drawXbm(x, y, width, height, bits);
+  display_->setFont(ArialMT_Plain_10);
+  display_->setTextAlignment(TEXT_ALIGN_CENTER);
+  display_->drawString(text_x, text_y, message.c_str());
   this->update();
+  display_->setTextAlignment(TEXT_ALIGN_LEFT);
 }
 
 void Display::drawStringLimit(int x, int y, std::string str, int width) {

@@ -18,8 +18,8 @@ class Display {
   void drawWifiDebug();
 
   void drawRoomStatus(const RoomStatus& status);
-  
-  void drawError();
+
+  void drawSadMac(std::string message);
 
   void drawHappyMac();
 
@@ -32,6 +32,8 @@ class Display {
 
   void drawRoomIcon(int room_id);
   void drawStringLimit(int x, int y, std::string str, int width);
+  void drawIconWithMessage(std::string message, int width, int height,
+                           const uint8_t* bits);
   void VextON();
   void VextOFF();
 };
