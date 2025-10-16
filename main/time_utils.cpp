@@ -4,7 +4,14 @@
 
 #include "config.h"
 
-void waitForTime() {
+void setupTime(char *timezone) {
+  configTime(0, 0, NPT_SERVER);
+  _waitForTime();
+  setenv("TZ", timezone, 1);
+  tzset();
+}
+
+void _waitForTime() {
   // Wait until SNTP sets a sane epoch (e.g., > Jan 1 2019)
   time_t now = time(nullptr);
   int retries = 0;
@@ -26,7 +33,7 @@ std::string timestampToIso8601(time_t t) {
 time_t iso8601ToTimestamp(const std::string& isoString) {
   struct tm tm;
   strptime(isoString.c_str(), "%Y-%m-%dT%H:%M:%S", &tm);
-  return timegm(&tm);
+  return _timegm(&tm);
 }
 
 std::string timestampToLocalHoursMins(time_t t) {
@@ -46,7 +53,7 @@ time_t getNextMidnight(time_t t) {
 }
 
 // this function will always operate on UTC timezone
-time_t timegm(struct tm* tm) {
+time_t _timegm(struct tm* tm) {
   char* original_tz = getenv("TZ");
 
   // Set the timezone to UTC for the mktime calculation

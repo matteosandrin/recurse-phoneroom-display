@@ -29,9 +29,8 @@ void setup() {
     display.drawSadMac(std::string("Connection failed :("));
     delay(5000);
     ESP.restart();
-  }
-  configTime(0, 0, NPT_SERVER);
-  waitForTime();
+  } 
+  setupTime("EST5EDT,M3.2.0,M11.1.0");
   delay(1000);
 }
 

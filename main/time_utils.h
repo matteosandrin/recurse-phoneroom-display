@@ -5,7 +5,9 @@
 
 #include "time.h"
 
-void waitForTime();
+void setupTime(char *timezone);
+
+void _waitForTime();
 
 std::string timestampToIso8601(time_t t);
 
@@ -15,6 +17,6 @@ std::string timestampToLocalHoursMins(time_t t);
 
 time_t getNextMidnight(time_t t);
 
-time_t timegm(struct tm* tm);
+time_t _timegm(struct tm* tm);
 
 #endif  // TIME_UTILS_H
