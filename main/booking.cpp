@@ -46,14 +46,8 @@ std::vector<Booking> getBookings(int roomId) {
   url += "&limit=2";
 
   Serial.println(url.c_str());
-  #ifdef AUTH_TOKEN:
-    std::string cookie = std::string("auth_token=") + AUTH_TOKEN;
-    http.addHeader("Cookie", cookie.c_str());
-  #endif
-  #ifdef API_KEY:
-    std::string authorization = std::string("Bearer ") + API_KEY;
-    http.addHeader("Authorization", authorization.c_str());
-  #endif
+  std::string authorizationHeader = std::string("Bearer ") + API_KEY;
+  http.addHeader("Authorization", authorizationHeader.c_str());
 
   // Use HTTPS or HTTP based on the URL scheme
   if (url.find("https://") == 0) {
