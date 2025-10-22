@@ -16,7 +16,7 @@
 #define ROOM_NAME "Lovelace"
 
 #define MAX_ERROR_COUNT 5
-#define REFRESH_INTERVAL 10000  // 10 seconds
+#define REFRESH_INTERVAL 15000  // 15 seconds
 #define ERR_REFRESH_INTERVAL 60000  // 60 seconds
 
 #define TIMEZONE "EST5EDT,M3.2.0/2,M11.1.0/2"
